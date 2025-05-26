@@ -33,8 +33,11 @@ class CalendarDay(ttk.Label) :
         
         
 
-class Calendar :
-    def __init__(self) :
+class Calendar(ttk.Frame) :
+    def __init__(self, master=None, title='Calendar', padding=10, **kwargs) :
+        super().__init__(master, padding=padding)
+        self.master = master
+        self.master.title(title)
         curr_time = datetime.datetime.today()
         self.month = curr_time.month
         self.year = curr_time.year
@@ -44,28 +47,25 @@ class Calendar :
     
     # Method that defines the widgets in the app
     def define_frame_widgets(self) :
-        self.root = tk.Tk()
-        self.root.title('Calendar')
-        self.frame = ttk.Frame(self.root, padding=10)
-        self.frame.grid()
+        self.grid()
 
         # Define labels used in the top row of the calendar - day of week
         self.dow_labels = []
         days = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
         for i, day in enumerate(days) :
-            new_label = ttk.Label(self.frame, text=day, width=5, anchor='e', justify='right')
+            new_label = ttk.Label(self, text=day, width=5, anchor='e', justify='right')
             new_label.grid(column=i%7, row=2)
             self.dow_labels.append(new_label)
         
         # Define the labels for each calendar day
         self.date_labels = []
         for i in range(42) :
-            new_label = CalendarDay(master=self.frame)
+            new_label = CalendarDay(master=self)
             new_label.grid(column=i%7, row=i//7 + 3)
             self.date_labels.append(new_label)
 
         # Define combobox for month selection
-        self.month_combobox = ttk.Combobox(self.frame, width=16)
+        self.month_combobox = ttk.Combobox(self, width=16)
         self.month_combobox['values'] = ('January', 
                                   'February',
                                   'March',
@@ -93,8 +93,8 @@ class Calendar :
                                         mode,
                                         sv=self.year_string_variable: self.year_entry_event(self.year_string_variable))
         
-        validation = (self.root.register(self.year_entry_validation))
-        self.year_entry = tk.Entry(self.frame,
+        validation = (self.master.register(self.year_entry_validation))
+        self.year_entry = tk.Entry(self,
                               textvariable=self.year_string_variable,
                               validate='all',
                               validatecommand=(validation, '%P'),
@@ -111,24 +111,23 @@ class Calendar :
                                         mode,
                                         sv=self.date_string_variable: self.date_entry_event(self.date_string_variable))
         
-        self.date_entry = tk.Entry(self.frame,
+        self.date_entry = tk.Entry(self,
                                    textvariable=self.date_string_variable,
                                    width=16)
         self.date_entry.grid(column=4, row=1, columnspan=3, sticky='E')
         
         # Define label used for errors
-        self.invalid_date_label = ttk.Label(self.frame, text='Enter date: dd/mm/yyyy', foreground='gray')
+        self.invalid_date_label = ttk.Label(self, text='Enter date: dd/mm/yyyy', foreground='gray')
         self.invalid_date_label.grid(column=0, row=1, columnspan=4, sticky='W')
         
         # Define 'Quit' button
-        self.quit_button = ttk.Button(self.frame,
+        self.quit_button = ttk.Button(self,
                                       text='Quit',
-                                      command=self.root.destroy)
+                                      command=self.master.destroy)
         self.quit_button.grid(column=4, row=9, columnspan=3, sticky='E')
         
         # Initialise the data
         self.change_calendar_view()
-        self.root.mainloop()
     
     # Method used for reading the holidays from a txt file
     def read_holidays(self) :
@@ -260,5 +259,7 @@ class Calendar :
             
             
 if __name__ == '__main__' :
-    calendar = Calendar()
+    app = tk.Tk()
+    calendar = Calendar(master=app)
+    app.mainloop()
 
